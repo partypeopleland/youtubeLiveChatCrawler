@@ -1,5 +1,7 @@
 # youtubeLiveChatCrawler
 
+BLOG:[實作youtube直播聊天訊息爬蟲](https://partypeopleland.github.io/artblog/2022/06/23/youtube-live-stream-chat-message-crawler/)
+
 ## 簡介
 
 官方的 API 不支援離線之後的聊天室訊息取得，所以若是直播活動結束後需要聊天訊息，就只能使用爬蟲  
