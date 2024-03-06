@@ -48,7 +48,11 @@ public class YoutubeModule : IYoutubeModule
                 if (chatMessages.Count == 0) break;
             }
 
-            if (saveFile) WriteIntoFile(videoInfo);
+            if (saveFile)
+            {
+                SaveChatMessages(videoInfo);
+                SaveChatMessageNames(videoInfo);
+            }
 
             return videoInfo;
         }
@@ -59,27 +63,63 @@ public class YoutubeModule : IYoutubeModule
         }
     }
 
-    private async void WriteIntoFile(VideoInfo videoInfo)
+    private static string ReplaceSpecialChar(string filePath)
     {
-        int count = 0;
+        return filePath.Replace(":", "：")
+            .Replace("?", "？")
+            .Replace("/", "／")
+            .Replace("\\", "＼")
+            .Replace("*", "＊")
+            .Replace("\"", "＂")
+            .Replace("<", "＜")
+            .Replace(">", "＞");
+    }
 
-        using (var file = new StreamWriter($"[{videoInfo.VideoId}] {videoInfo.Title}.txt"))
+    private static async void SaveChatMessageNames(VideoInfo videoInfo)
+    {
+        var names = new List<string>();
+        var filePath = ReplaceSpecialChar($"[{videoInfo.VideoId}] {videoInfo.Title} names.txt");
+        await using var file = new StreamWriter(filePath);
+        foreach (var continuation in videoInfo.Continuation)
         {
-            foreach (var continuation in videoInfo.Continuation)
+            if (!videoInfo.ChatMessages.ContainsKey(continuation)) continue;
+
+            foreach (var chatMessage in videoInfo.ChatMessages[continuation])
             {
-                if (!videoInfo.ChatMessages.ContainsKey(continuation)) continue;
+                if (names.Contains(chatMessage.AuthorName)) continue;
+                names.Add(chatMessage.AuthorName);
+            }
+        }
+
+        foreach (var name in names)
+        {
+            await file.WriteLineAsync(name);
+        }
+
+        Console.WriteLine($"Total number of names: {names.Count}, Save file success\n" + filePath);
+    }
+
+    private static async void SaveChatMessages(VideoInfo videoInfo)
+    {
+        var count = 0;
+        var filePath = ReplaceSpecialChar($"[{videoInfo.VideoId}] {videoInfo.Title} messages.txt");
+
+        await using var file = new StreamWriter(filePath);
+        foreach (var continuation in videoInfo.Continuation)
+        {
+            if (!videoInfo.ChatMessages.ContainsKey(continuation)) continue;
 
 
-                foreach (var chatMessage in videoInfo.ChatMessages[continuation])
-                {
-                    await file.WriteLineAsync(chatMessage.Line);
-                }
-
-                count += videoInfo.ChatMessages[continuation].Count;
+            foreach (var chatMessage in videoInfo.ChatMessages[continuation])
+            {
+                await file.WriteLineAsync(chatMessage.Line);
             }
 
-            await file.WriteLineAsync($"Total number of messages: {count}");
+            count += videoInfo.ChatMessages[continuation].Count;
         }
+
+        await file.WriteLineAsync($"Total number of messages: {count}");
+        Console.WriteLine($"Total number of messages: {count}, Save file success\n" + filePath);
     }
 
     public VideoInfo GetVideoInfo(string videoId)
@@ -290,7 +330,8 @@ public class YoutubeModule : IYoutubeModule
         switch (requestType)
         {
             case YoutubeRequest.Initial:
-                return "contents.twoColumnWatchNextResults.conversationBar.liveChatRenderer.header.liveChatHeaderRenderer.viewSelector.sortFilterSubMenuRenderer.subMenuItems.1.continuation.reloadContinuationData.continuation";
+                return
+                    "contents.twoColumnWatchNextResults.conversationBar.liveChatRenderer.header.liveChatHeaderRenderer.viewSelector.sortFilterSubMenuRenderer.subMenuItems.1.continuation.reloadContinuationData.continuation";
             case YoutubeRequest.Begin:
             case YoutubeRequest.FollowUp:
                 return "continuationContents.liveChatContinuation.continuations.0.liveChatReplayContinuationData.continuation";

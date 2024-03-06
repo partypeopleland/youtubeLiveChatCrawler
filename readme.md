@@ -1,6 +1,6 @@
 # youtubeLiveChatCrawler
 
-BLOG:[實作youtube直播聊天訊息爬蟲](https://partypeopleland.github.io/artblog/2022/06/23/youtube-live-stream-chat-message-crawler/)
+BLOG:[實作youtube直播聊天訊息爬蟲](https://partypeopleland.github.io/artblog/youtube-live-stream-chat-message-crawler/)
 
 ## 簡介
 
@@ -17,7 +17,8 @@ BLOG:[實作youtube直播聊天訊息爬蟲](https://partypeopleland.github.io/a
 
 ## 打包指令
 ```
- dotnet publish -r win-x64 -p:PublishSingleFile=true --self-contained false
+ cd youtubeLiveChat.App
+ dotnet publish -r win-x64 -p:PublishSingleFile=true --self-contained false --output ./output
 ```
 > 上述為 windows 環境打包指令，其餘請參閱 [dotnet publish](https://docs.microsoft.com/zh-tw/dotnet/core/tools/dotnet-publish)
 
